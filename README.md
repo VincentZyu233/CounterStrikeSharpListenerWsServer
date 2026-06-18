@@ -1,6 +1,8 @@
 > **[📖 English](README.md)**
 > **[📖 简体中文(大陆)](README.zh-cn.md)**
 
+![CounterStrikeSharpListenerWsServer](https://socialify.git.ci/VincentZyu233/CounterStrikeSharpListenerWsServer/image?custom_description=%F0%9F%94%8C%F0%9F%8C%90%F0%9F%94%AB+CS2-to-chat-platform+bridge+via+WebSocket+%E2%80%94+player+join%2Fleave%2Fchat+broadcast+%26+group+message+relay+for+CounterStrikeSharp&description=1&forks=1&issues=1&language=1&logo=https%3A%2F%2Fencrypted-tbn0.gstatic.com%2Fimages%3Fq%3Dtbn%3AANd9GcQOYCNiIzbN_BjO8zQoHB8aaf9Pe6zET1_9aUlP8jt7Xg%26s%3D10&name=1&owner=1&pattern=Plus&pulls=1&stargazers=1&theme=Auto)
+
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/CounterStrikeSharpListenerWsServer)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/CounterStrikeSharpListenerWsServer)
 
@@ -96,12 +98,12 @@ Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp),
    ./cs2 -dedicated -game csgo +map de_dust2 +sv_lan 1
    ```
 
-   You should see `[Plugin] WS Server started on 0.0.0.0:60606` in the console.
+   You should see `[Plugin] WS Server started on 0.0.0.0:60618` in the console.
    A default `config.json` will be generated automatically.
 
 5. **Configure the Koishi Client**
    In your Koishi plugin config, set:
-   - `wsServerUrl`: `ws://<CS2_SERVER_IP>:60606`
+   - `wsServerUrl`: `ws://<CS2_SERVER_IP>:60618`
    - `wsToken`: `test12345` (match with `config.json`)
 
    **Important:** Change the default token for production use!
@@ -113,7 +115,7 @@ On first startup, `config.json` is auto-generated at `csgo/addons/counterstrikes
 ```json
 {
   "host": "0.0.0.0",
-  "port": 60606,
+  "port": 60618,
   "wsToken": "test12345",
   "enablePlayerJoinBroadcast": true,
   "enablePlayerLeaveBroadcast": true,
@@ -126,7 +128,7 @@ On first startup, `config.json` is auto-generated at `csgo/addons/counterstrikes
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `host` | string | `0.0.0.0` | WebSocket server listen address |
-| `port` | int | `60606` | WebSocket server listen port |
+| `port` | int | `60618` | WebSocket server listen port |
 | `wsToken` | string | `test12345` | Auth token (empty = no auth) |
 | `enablePlayerJoinBroadcast` | bool | `true` | Broadcast player join events |
 | `enablePlayerLeaveBroadcast` | bool | `true` | Broadcast player leave events |
@@ -193,6 +195,8 @@ Edit the `ModuleVersion` string in `CounterStrikeSharpListenerWsServer.cs`:
 ```cs
 public override string ModuleVersion => "x.y.z";
 ```
+
+The next Release will automatically use `vx.y.z-{run_number}` as the tag.
 
 [![Last Commit](https://img.shields.io/github/last-commit/VincentZyuApps/CounterStrikeSharpListenerWsServer?style=for-the-badge&label=Last%20Commit&labelColor=181717&color=555555)](https://github.com/VincentZyuApps/CounterStrikeSharpListenerWsServer/commits/main)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/VincentZyuApps/CounterStrikeSharpListenerWsServer/build.yml?style=for-the-badge&label=Build%20Status&labelColor=181717&logo=github)](https://github.com/VincentZyuApps/CounterStrikeSharpListenerWsServer/actions)

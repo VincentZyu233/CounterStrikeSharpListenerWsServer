@@ -15,7 +15,7 @@ public class WsServer {
     private readonly Lock _lock = new();
     private string _token = "";
 
-    public event Action<string>? OnMessageReceived;
+    public event Action<WebSocket, string>? OnMessageReceived;
 
     public WsServer(ILogger logger) { _logger = logger; }
 
@@ -69,6 +69,12 @@ public class WsServer {
                 });
             }
         }
+    }
+
+    public async Task SendAsync(WebSocket ws, string json) {
+        var bytes = Encoding.UTF8.GetBytes(json);
+        try { await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None); }
+        catch { }
     }
 
     private async Task HandleTcpClientAsync(TcpClient tcpClient, CancellationToken ct) {
@@ -132,7 +138,7 @@ public class WsServer {
                 if (result.MessageType == WebSocketMessageType.Text) {
                     var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
                     _logger.LogTrace($"[WsServer] Received: {json}");
-                    OnMessageReceived?.Invoke(json);
+                    OnMessageReceived?.Invoke(ws, json);
                 }
             }
         } catch (WebSocketException ex) { _logger.LogDebug($"[WsServer] WebSocket error: {ex.Message}"); }
