@@ -13,19 +13,21 @@ public class PluginLogger {
         _minLevel = ParseLevel(level);
     }
 
-    // Public methods: check level filter before calling inner logger
-    public void Trace(string s) { if (IsEnabled(LogLevel.Trace)) log(LogLevel.Trace, _inner.LogTrace, _inner.LogInformation, s); }
-    public void Debug(string s) { if (IsEnabled(LogLevel.Debug)) log(LogLevel.Debug, _inner.LogDebug, _inner.LogInformation, s); }
+    // Debug/Trace fallback: if Serilog rejects, downgrade to Info with [level] prefix
+    public void Trace(string s) {
+        if (!IsEnabled(LogLevel.Trace)) return;
+        if (_inner.IsEnabled(LogLevel.Trace)) _inner.LogTrace(s);
+        else _inner.LogInformation($"[Trace] {s}");
+    }
+    public void Debug(string s) {
+        if (!IsEnabled(LogLevel.Debug)) return;
+        if (_inner.IsEnabled(LogLevel.Debug)) _inner.LogDebug(s);
+        else _inner.LogInformation($"[Debug] {s}");
+    }
     public void Info(string s)  { if (IsEnabled(LogLevel.Information)) _inner.LogInformation(s); }
     public void Warn(string s)  { if (IsEnabled(LogLevel.Warning)) _inner.LogWarning(s); }
     public void Error(string s) { if (IsEnabled(LogLevel.Error)) _inner.LogError(s); }
     public void Fatal(string s) { _inner.LogCritical(s); }
-
-    // Debug/Trace fallback: if Serilog rejects, downgrade to Info with [level] prefix
-    private void log(LogLevel level, Action<string> logFn, Action<string> fallbackFn, string s) {
-        if (_inner.IsEnabled(level)) logFn(s);
-        else fallbackFn($"[{level}] {s}");
-    }
 
     // True if requested log level meets configured minimum
     private bool IsEnabled(LogLevel level) => level >= _minLevel;
