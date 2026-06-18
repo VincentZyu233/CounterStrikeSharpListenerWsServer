@@ -9,8 +9,9 @@ bin/
 obj/
 
 # 🐍 ---- Python virtual environment & cache ----
-.venv/
-__pycache__/
+**/venv/
+**/.venv/
+**/__pycache__/
 *.pyc
 
 # 💻 ---- IDE & editors ----

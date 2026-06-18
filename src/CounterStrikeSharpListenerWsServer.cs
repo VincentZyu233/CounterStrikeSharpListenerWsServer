@@ -10,10 +10,9 @@ namespace CounterStrikeSharpListenerWsServer;
 // Main plugin: bridges CS2 game events ↔ WebSocket ↔ chat platforms
 public class CounterStrikeSharpListenerWsServer : BasePlugin {
     public override string ModuleName => "CounterStrikeSharp Listener WS Server";
-    public override string ModuleVersion => "0.4.3";
+    public override string ModuleVersion => "0.4.4";
 
     private WsServer? _wsServer;
-    private RconClient? _rcon;
     private PluginConfig _config = new();
     private PluginLogger? _log;
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
@@ -32,19 +31,12 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
         RegisterEventHandler<EventPlayerChat>(OnPlayerChat);
         _log.Info($"[Plugin] WS Server started on {_config.Host}:{_config.Port}");
 
-        // Initialize RCON client if relay mode is configured
-        if (_config.ExecCommandMode == "rcon-relay") {
-            _rcon = new RconClient();
-            _log.Info($"[Plugin] RCON mode enabled, target: {_config.RconHost}:{_config.RconPort}");
-        }
-
         _log?.Trace("[Plugin] Load done");
     }
 
-    // Shutdown: stop WS server, dispose RCON client
+    // Shutdown: stop WS server
     public override void Unload(bool hotReload) {
         _wsServer?.StopAsync().Wait();
-        _rcon?.Dispose();
         _log?.Info("[Plugin] WS Server stopped");
     }
 
@@ -193,17 +185,13 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
     // Mode rcon-relay: connect game server RCON → execute → return text output
     private async void ExecuteRconCommand(WebSocket ws, CommandRequestMessage msg, string cmd) {
         _log?.Trace("[Plugin] ExecuteRconCommand: entering...");
-        if (_rcon == null) {
-            _log?.Error("[Plugin] RCON client not initialized");
-            SendCommandResult(ws, msg.RequestId, msg.Command, false, null, "RCON client not initialized");
-            return;
-        }
+        using var rcon = new RconClient();
         try {
             _log?.Info($"[Plugin] RCON exec: {cmd}, connecting to {_config.RconHost}:{_config.RconPort}");
-            await _rcon.ConnectAsync(_config.RconHost, _config.RconPort, _config.RconTimeoutMs);
+            await rcon.ConnectAsync(_config.RconHost, _config.RconPort, _config.RconTimeoutMs);
 
             _log?.Trace("[Plugin] RCON: authenticating...");
-            var authOk = await _rcon.AuthenticateAsync(_config.RconPassword, _config.RconTimeoutMs);
+            var authOk = await rcon.AuthenticateAsync(_config.RconPassword, _config.RconTimeoutMs);
             if (!authOk) {
                 _log?.Error($"[Plugin] RCON auth failed for {_config.RconHost}:{_config.RconPort}");
                 SendCommandResult(ws, msg.RequestId, msg.Command, false, null, "RCON auth failed, check rcon password");
@@ -212,14 +200,12 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
             _log?.Trace("[Plugin] RCON: auth OK");
 
             _log?.Info($"[Plugin] RCON: executing {cmd}");
-            var output = await _rcon.ExecuteCommandAsync(cmd, _config.RconTimeoutMs);
+            var output = await rcon.ExecuteCommandAsync(cmd, _config.RconTimeoutMs);
             _log?.Info($"[Plugin] RCON result ({output.Length} chars): {output[..Math.Min(output.Length, 80)]}");
             SendCommandResult(ws, msg.RequestId, msg.Command, true, output, null);
         } catch (Exception ex) {
             _log?.Error($"[Plugin] RCON exec failed: {cmd}, error: {ex.Message}");
             SendCommandResult(ws, msg.RequestId, msg.Command, false, null, $"RCON error: {ex.Message}");
-        } finally {
-            try { _rcon?.Dispose(); } catch { }
         }
     }
 
