@@ -154,10 +154,6 @@ sv_logecho 1
   "GroupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}",
   "BotSuffix": " (bot)",
   "PlayerSuffix": " (player)",
-  "EnableRemoteExecCommand": false,
-  "RemoteExecCommandWhitelist": [],
-  "RemoteExecCommandTimeoutSec": 10,
-  "RemoteCommandReturnEmptyResult": true,
   "ExecCommandMode": "disabled",
   "RconHost": "127.0.0.1",
   "RconPort": 27015,
@@ -179,11 +175,7 @@ sv_logecho 1
 | `GroupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | 群消息在游戏内的显示模板 |
 | `BotSuffix` | string | ` (bot)` | Bot 名字后缀（空字符串不标记） |
 | `PlayerSuffix` | string | ` (player)` | 玩家名字后缀（空字符串不标记） |
-| `EnableRemoteExecCommand` | bool | `false` | 启用远程命令执行 |
-| `RemoteExecCommandWhitelist` | string[] | `[]` | 命令前缀白名单（空列表不限制） |
-| `RemoteExecCommandTimeoutSec` | int | `10` | 命令执行超时（秒） |
-| `RemoteCommandReturnEmptyResult` | bool | `true` | `true`=返空字符串，`false`=不返回 result 字段 |
-| `ExecCommandMode` | string | `disabled` | `disabled` / `csharp-native` / `rcon-relay` |
+| `ExecCommandMode` | string | `disabled` | `disabled`（关闭）/ `csharp-native`（引擎执行，无输出）/ `rcon-relay`（RCON 回显，有输出） |
 | `RconHost` | string | `127.0.0.1` | RCON 服务器地址 |
 | `RconPort` | int | `27015` | RCON 端口（即游戏端口） |
 | `RconPassword` | string | `""` | RCON 密码（与 server.cfg 一致） |

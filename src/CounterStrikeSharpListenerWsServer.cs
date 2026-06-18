@@ -98,12 +98,8 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
                     });
                     break;
                 case "external_command_to_server":
-                    _log?.Trace("[Plugin] Scheduling HandleCommandRequest via NextFrame...");
-                    Server.NextFrame(() => {
-                        _log?.Trace("[Plugin] NextFrame executing HandleCommandRequest...");
-                        HandleCommandRequest(ws, json);
-                        _log?.Trace("[Plugin] NextFrame HandleCommandRequest done");
-                    });
+                    _log?.Trace("[Plugin] HandleCommandRequest directly (RCON relay bypasses NextFrame)...");
+                    HandleCommandRequest(ws, json);
                     break;
                 default:
                     _log?.Warn($"[Plugin] Unknown WS message type: {type}");
@@ -127,8 +123,8 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
     private void HandleCommandRequest(WebSocket ws, string json) {
         _log?.Trace("[Plugin] HandleCommandRequest: entering...");
 
-        if (!_config.EnableRemoteExecCommand) {
-            _log?.Warn("[Plugin] HandleCommandRequest: EnableRemoteExecCommand is false, skipping");
+        if (_config.ExecCommandMode == "disabled") {
+            _log?.Debug("[Plugin] HandleCommandRequest: ExecCommandMode is disabled, skipping");
             return;
         }
 
@@ -150,28 +146,33 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
         }
         _log?.Trace("[Plugin] HandleCommandRequest: whitelist check passed");
 
-        // Built-in handlers (list, players): use CSSharp API directly, have return values
-        _log?.Trace("[Plugin] HandleCommandRequest: trying built-in handler...");
+        // Route to configured execution mode
+        switch (_config.ExecCommandMode) {
+            case "rcon-relay":
+                // RCON is pure network I/O — no main thread needed, works during hibernation
+                ExecuteRconCommand(ws, msg, cmd);
+                break;
+            case "csharp-native":
+            default:
+                // Built-in handlers + native commands need game tick → schedule via NextFrame
+                _log?.Trace("[Plugin] Scheduling native handler via NextFrame...");
+                Server.NextFrame(() => ExecuteNativeHandler(ws, msg, cmd));
+                break;
+        }
+
+        _log?.Trace("[Plugin] HandleCommandRequest: done");
+    }
+
+    // Built-in + native command execution (must run on main thread via NextFrame)
+    private void ExecuteNativeHandler(WebSocket ws, CommandRequestMessage msg, string cmd) {
+        _log?.Trace("[Plugin] ExecuteNativeHandler: trying built-in...");
         var builtInResult = ExecuteBuiltInCommand(cmd);
         if (builtInResult != null) {
             _log?.Info($"[Plugin] Built-in command result: {builtInResult[..Math.Min(builtInResult.Length, 80)]}");
             SendCommandResult(ws, msg.RequestId, msg.Command, true, builtInResult, null);
             return;
         }
-        _log?.Trace("[Plugin] HandleCommandRequest: no built-in handler matched");
-
-        // Route to configured execution mode
-        switch (_config.ExecCommandMode) {
-            case "rcon-relay":
-                ExecuteRconCommand(ws, msg, cmd);
-                break;
-            case "csharp-native":
-            default:
-                ExecuteNativeCommand(ws, msg, cmd);
-                break;
-        }
-
-        _log?.Trace("[Plugin] HandleCommandRequest: done");
+        ExecuteNativeCommand(ws, msg, cmd);
     }
 
     // Mode csharp-native: Server.ExecuteCommand — fire and forget, no output

@@ -154,10 +154,6 @@ On first startup, `config.json` is auto-generated at `csgo/addons/counterstrikes
   "GroupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}",
   "BotSuffix": " (bot)",
   "PlayerSuffix": " (player)",
-  "EnableRemoteExecCommand": false,
-  "RemoteExecCommandWhitelist": [],
-  "RemoteExecCommandTimeoutSec": 10,
-  "RemoteCommandReturnEmptyResult": true,
   "ExecCommandMode": "disabled",
   "RconHost": "127.0.0.1",
   "RconPort": 27015,
@@ -179,11 +175,7 @@ On first startup, `config.json` is auto-generated at `csgo/addons/counterstrikes
 | `GroupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | Template for in-game group messages |
 | `BotSuffix` | string | ` (bot)` | Bot name suffix (empty = none) |
 | `PlayerSuffix` | string | ` (player)` | Player name suffix (empty = none) |
-| `EnableRemoteExecCommand` | bool | `false` | Enable remote command execution |
-| `RemoteExecCommandWhitelist` | string[] | `[]` | Allowed command prefixes (empty = allow all) |
-| `RemoteExecCommandTimeoutSec` | int | `10` | Command execution timeout (seconds) |
-| `RemoteCommandReturnEmptyResult` | bool | `true` | `true`=return `""`, `false`=omit field when engine has no output |
-| `ExecCommandMode` | string | `disabled` | `disabled` / `csharp-native` / `rcon-relay` |
+| `ExecCommandMode` | string | `disabled` | `disabled` (off) / `csharp-native` (engine, no output) / `rcon-relay` (RCON, with output) |
 | `RconHost` | string | `127.0.0.1` | RCON server address |
 | `RconPort` | int | `27015` | RCON server port (game port) |
 | `RconPassword` | string | `""` | RCON password (must match server.cfg) |

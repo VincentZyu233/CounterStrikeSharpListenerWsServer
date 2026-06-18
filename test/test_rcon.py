@@ -1,55 +1,60 @@
-"""
-uv venv
-uv pip install rcon
-uv run python ./test_rcon.py [--host HOST] [--port PORT] [--pass PASSWORD]
+"""CS2 RCON 测试脚本 — 使用 python-rcon 库
+用法: uv pip install rcon && uv run python ./test_rcon.py [COMMAND] [--host HOST] [--port PORT] [--pass PASSWORD]
 """
 
 import time
-import argparse
-# from rcon.source import rcon
 from rcon.source import Client
+from common import make_rcon_parser, resolve_commands
+
+# ANSI styles
+BOLD    = "\033[1m"
+DIM     = "\033[2m"
+ITALIC  = "\033[3m"
+RST     = "\033[0m"
+RED     = "\033[31m"
+GREEN   = "\033[32m"
+YELLOW  = "\033[33m"
+BLUE    = "\033[34m"
+MAGENTA = "\033[35m"
+CYAN    = "\033[36m"
+GRAY    = "\033[90m"
 
 
 def main():
-    parser = argparse.ArgumentParser(description='CS2 RCON 测试脚本')
-    parser.add_argument('--host', default='127.0.1.1')
-    parser.add_argument('--port', type=int, default=60730)
-    parser.add_argument('--pass', dest='password', default='test67890', help='RCON password')
+    parser = make_rcon_parser('CS2 RCON 测试脚本')
     args = parser.parse_args()
 
-    print(f'🔌 连接 {args.host}:{args.port}  RCON 密码: {args.password}')
+    print(f'{BOLD}{CYAN}🔌 连接 {args.host}:{args.port}  RCON 密码: {args.password}{RST}')
     print('=' * 60)
 
-    commands = [
-        ('status', '查看服务器状态、玩家列表'),
-        ('users',  '列出所有玩家 SteamID + UserID'),
-        ('ping',   '所有玩家当前延迟'),
-        ('stats',  '服务器 FPS / CPU / 网络流量'),
-    ]
+    cmds = resolve_commands(args)
+
+    if not args.command:
+        print(f'{YELLOW}⚠️  未传参，执行默认 {len(cmds)} 条指令{RST}\n')
 
     try:
-        # 使用标准的 Client 类作为同步上下文管理器，接收主机、端口和 passwd 关键字
         with Client(args.host, args.port, passwd=args.password) as conn:
-            print('[+] RCON 认证成功\n')
+            print(f'{BOLD}{GREEN}✅ RCON 认证成功{RST}\n')
 
-            for cmd, desc in commands:
-                print(f'▶ {cmd}  ({desc})')
-                print('-' * 40)
-                
-                # 执行指令
+            for i, (cmd, desc) in enumerate(cmds, 1):
+                tag = f'{ITALIC}{GRAY}{desc}{RST}' if desc else ''
+                print(f'{BOLD}{MAGENTA}▶ [{i}/{len(cmds)}] {cmd}{RST} {tag}')
+                print('─' * 40)
                 response = conn.run(cmd)
-                
-                print(response.strip() if response and response.strip() else '(无输出)')
+                if response and response.strip():
+                    print(response.strip())
+                else:
+                    print(f'{DIM}(无输出){RST}')
                 print()
                 time.sleep(0.3)
 
     except ConnectionRefusedError:
-        print(f'[❌] 无法连接到 {args.host}:{args.port}，请检查服务器是否运行、防火墙是否放行 TCP')
+        print(f'{RED}[❌] 无法连接到 {args.host}:{args.port}，请检查服务器是否运行、防火墙是否放行 TCP{RST}')
     except Exception as e:
-        print(f'[❌] 捕获到异常异常: {e}')
+        print(f'{RED}[❌] {e}{RST}')
 
     print('=' * 60)
-    print('✅ 测试完成')
+    print(f'{BOLD}{GREEN}✅ 测试完成{RST}')
 
 
 if __name__ == '__main__':

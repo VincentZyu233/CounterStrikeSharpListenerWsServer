@@ -1,2 +1,21 @@
+# 🧹 ---- .gitignore for CounterStrikeSharpListenerWsServer ----
+
+# 🗂️ temp / tmp
 temp/
 tmp/
+
+# 🔧 ---- .NET build artifacts ----
+bin/
+obj/
+
+# 🐍 ---- Python virtual environment & cache ----
+.venv/
+__pycache__/
+*.pyc
+
+# 💻 ---- IDE & editors ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
