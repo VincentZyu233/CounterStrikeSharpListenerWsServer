@@ -8,7 +8,7 @@
 
 ---
 
-### 🎯 Highlights
+### 🎯 Commit Log
 
 __COMMIT_LOG__
 

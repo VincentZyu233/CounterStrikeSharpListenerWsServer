@@ -35,12 +35,12 @@ Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp),
 ┌──────────────────┐       WebSocket JSON        ┌──────────────────────────────┐
 │   Koishi Bot     │ ◄══════════════════════════► │  CounterStrikeSharpListener  │
 │ (QQ/Discord/...) │   ws://host:port?token=xxx   │         WsServer             │
-└──────────────────┘                              └─────────────┬────────────────┘
-                                                                │
-                                                     ┌──────────┴──────────┐
-                                                     │    CS2 Server       │
-                                                     │ (CounterStrikeSharp) │
-                                                     └─────────────────────┘
+└──────────────────┘                              └───────────────┬──────────────┘
+                                                                  │
+                                                      ┌───────────┴───────────┐
+                                                      │      CS2 Server       │
+                                                      │ (CounterStrikeSharp)  │
+                                                      └──────────────────────┘
 ```
 
 ## 🏃 Quick Start
@@ -108,33 +108,82 @@ Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp),
 
    **Important:** Change the default token for production use!
 
+### 📡 Enable RCON (Optional)
+
+RCON allows the plugin to receive text output from commands like `status` or `list` (via `ExecCommandMode: "rcon-relay"`).
+
+#### 法一：写入 server.cfg 配置文件（推荐）
+
+Create or edit `csgo/cfg/server.cfg`:
+```
+rcon_password "your-strong-password"
+log on
+sv_logecho 1
+```
+The plugin uses the same password in its `RconPassword` config. Restart after editing.
+
+#### 法二：写入启动脚本
+
+Add to your server startup command line (`cs2ds.sh` or similar):
+```bash
++rcon_password "your-strong-password" \
++sv_logecho 1
+```
+
+> ⚠️ RCON uses **TCP** on the game port. Ensure your firewall allows TCP (not only UDP) on the configured port (`27015` by default).
+
 ## ⚙️ Configuration
 
 On first startup, `config.json` is auto-generated at `csgo/addons/counterstrikesharp/plugins/CounterStrikeSharpListenerWsServer/config.json`:
 
 ```json
 {
-  "host": "0.0.0.0",
-  "port": 60618,
-  "wsToken": "test12345",
+  "_comment_logLevel": "📋 日志等级：silent | fatal | error | warn | info | debug | trace",
+  "logLevel": "info",
+  "Host": "0.0.0.0",
+  "Port": 60618,
+  "WsToken": "test12345",
   "enablePlayerJoinBroadcast": true,
   "enablePlayerLeaveBroadcast": true,
   "enablePlayerChatBroadcast": true,
   "enableReceiveGroupMessage": true,
-  "groupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}"
+  "GroupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}",
+  "BotSuffix": " (bot)",
+  "PlayerSuffix": " (player)",
+  "EnableRemoteExecCommand": false,
+  "RemoteExecCommandWhitelist": [],
+  "RemoteExecCommandTimeoutSec": 10,
+  "RemoteCommandReturnEmptyResult": true,
+  "ExecCommandMode": "disabled",
+  "RconHost": "127.0.0.1",
+  "RconPort": 27015,
+  "RconPassword": "",
+  "RconTimeoutMs": 5000
 }
 ```
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `host` | string | `0.0.0.0` | WebSocket server listen address |
-| `port` | int | `60618` | WebSocket server listen port |
-| `wsToken` | string | `test12345` | Auth token (empty = no auth) |
+| `logLevel` | string | `info` | Log level: `silent` / `fatal` / `error` / `warn` / `info` / `debug` / `trace` |
+| `Host` | string | `0.0.0.0` | WebSocket server listen address |
+| `Port` | int | `60618` | WebSocket server listen port |
+| `WsToken` | string | `test12345` | Auth token (empty = no auth) |
 | `enablePlayerJoinBroadcast` | bool | `true` | Broadcast player join events |
 | `enablePlayerLeaveBroadcast` | bool | `true` | Broadcast player leave events |
 | `enablePlayerChatBroadcast` | bool | `true` | Broadcast player chat to chat platforms |
 | `enableReceiveGroupMessage` | bool | `true` | Forward group messages to in-game chat |
-| `groupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | Template for in-game group messages. Available placeholders: `{group_name}`, `{group_id}`, `{nickname}`, `{message}` |
+| `GroupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | Template for in-game group messages |
+| `BotSuffix` | string | ` (bot)` | Bot name suffix (empty = none) |
+| `PlayerSuffix` | string | ` (player)` | Player name suffix (empty = none) |
+| `EnableRemoteExecCommand` | bool | `false` | Enable remote command execution |
+| `RemoteExecCommandWhitelist` | string[] | `[]` | Allowed command prefixes (empty = allow all) |
+| `RemoteExecCommandTimeoutSec` | int | `10` | Command execution timeout (seconds) |
+| `RemoteCommandReturnEmptyResult` | bool | `true` | `true`=return `""`, `false`=omit field when engine has no output |
+| `ExecCommandMode` | string | `disabled` | `disabled` / `csharp-native` / `rcon-relay` |
+| `RconHost` | string | `127.0.0.1` | RCON server address |
+| `RconPort` | int | `27015` | RCON server port (game port) |
+| `RconPassword` | string | `""` | RCON password (must match server.cfg) |
+| `RconTimeoutMs` | int | `5000` | RCON operations timeout (ms) |
 
 ## 🔌 WebSocket Protocol
 

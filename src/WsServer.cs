@@ -6,6 +6,7 @@ using System.Text;
 
 namespace CounterStrikeSharpListenerWsServer;
 
+// WebSocket server using TcpListener + manual HTTP upgrade handshake
 public class WsServer {
     private readonly PluginLogger _logger;
     private TcpListener? _listener;
@@ -16,8 +17,10 @@ public class WsServer {
 
     public event Action<WebSocket, string>? OnMessageReceived;
 
+    // Store log reference
     public WsServer(PluginLogger logger) { _logger = logger; }
 
+    // Bind TcpListener, spawn background accept loop
     public async Task StartAsync(string host, int port, string token) {
         _token = token;
         _cts = new CancellationTokenSource();
@@ -43,6 +46,7 @@ public class WsServer {
         }, ct);
     }
 
+    // Cancel accept loop, stop listener, close all client connections
     public async Task StopAsync() {
         if (_cts != null) { await _cts.CancelAsync(); _cts.Dispose(); _cts = null; }
         if (_listener != null) { _listener.Stop(); _listener = null; }
@@ -57,6 +61,7 @@ public class WsServer {
         _logger.Info("[WsServer] Stopped");
     }
 
+    // Broadcast JSON string to every connected WS client (fire-and-forget)
     public async Task BroadcastAsync(string json) {
         var bytes = Encoding.UTF8.GetBytes(json);
         var segment = new ArraySegment<byte>(bytes);
@@ -76,17 +81,25 @@ public class WsServer {
         }
     }
 
+    // Send JSON to a single specific WS client (for command_result replies)
     public async Task SendAsync(WebSocket ws, string json) {
         var bytes = Encoding.UTF8.GetBytes(json);
-        try { await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None); }
-        catch { _logger.Debug($"[WsServer] SendAsync to client failed"); }
+        _logger.Trace($"[WsServer] SendAsync: sending {bytes.Length} bytes...");
+        try {
+            await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+            _logger.Trace("[WsServer] SendAsync: sent successfully");
+        } catch (Exception ex) {
+            _logger.Debug($"[WsServer] SendAsync failed: {ex.Message}");
+        }
     }
 
+    // New TCP connection: parse HTTP upgrade request → WebSocket handshake
     private async Task HandleTcpClientAsync(TcpClient tcpClient, CancellationToken ct) {
         try {
             var stream = tcpClient.GetStream();
             using var reader = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
 
+            // Parse GET /path?token=xxx HTTP/1.1 request line
             var requestLine = await reader.ReadLineAsync(ct);
             if (string.IsNullOrEmpty(requestLine)) { tcpClient.Dispose(); return; }
 
@@ -102,12 +115,14 @@ public class WsServer {
                 }
             }
 
+            // Verify token against configured value
             if (!string.IsNullOrEmpty(_token) && queryToken != _token) {
                 _logger.Warn($"[WsServer] Token verification failed from {tcpClient.Client.RemoteEndPoint}");
                 tcpClient.Dispose();
                 return;
             }
 
+            // Extract Sec-WebSocket-Key from HTTP headers
             string? secWebSocketKey = null;
             string? headerLine;
             while (!string.IsNullOrEmpty(headerLine = await reader.ReadLineAsync(ct))) {
@@ -117,12 +132,14 @@ public class WsServer {
 
             if (secWebSocketKey == null) { tcpClient.Dispose(); return; }
 
+            // Compute Accept = Base64(SHA1(clientKey + WsMagicGuid))
             var acceptKey = ComputeAcceptKey(secWebSocketKey);
             var response = $"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {acceptKey}\r\n\r\n";
             var responseBytes = Encoding.UTF8.GetBytes(response);
             await stream.WriteAsync(responseBytes, ct);
             await stream.FlushAsync(ct);
 
+            // Upgrade to WebSocket, register connection, start receive loop
             var ws = WebSocket.CreateFromStream(stream, true, null, TimeSpan.FromSeconds(30));
             _logger.Info($"[WsServer] Client connected: {tcpClient.Client.RemoteEndPoint}");
             lock (_lock) _connections.Add(ws);
@@ -135,6 +152,7 @@ public class WsServer {
         }
     }
 
+    // Continuous loop: receive WS frames, dispatch text → OnMessageReceived
     private async Task ReceiveLoopAsync(WebSocket ws, CancellationToken ct) {
         var buffer = new byte[16384];
         try {
@@ -161,8 +179,10 @@ public class WsServer {
         }
     }
 
+    // RFC 6455 magic GUID for WebSocket key verification
     private static readonly string WsMagicGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
+    // Compute WebSocket accept key
     private static string ComputeAcceptKey(string clientKey) {
         var combined = clientKey + WsMagicGuid;
         var hash = SHA1.HashData(Encoding.UTF8.GetBytes(combined));

@@ -35,12 +35,12 @@
 ┌──────────────────┐       WebSocket JSON        ┌──────────────────────────────┐
 │   Koishi 机器人   │ ◄══════════════════════════► │  CounterStrikeSharpListener  │
 │ (QQ/Discord/...) │   ws://主机:端口?token=xxx   │         WsServer             │
-└──────────────────┘                              └─────────────┬────────────────┘
-                                                                │
-                                                     ┌──────────┴──────────┐
-                                                     │    CS2 服务器        │
-                                                     │ (CounterStrikeSharp) │
-                                                     └─────────────────────┘
+└──────────────────┘                              └───────────────┬──────────────┘
+                                                                  │
+                                                      ┌───────────┴───────────┐
+                                                      │      CS2 服务器        │
+                                                      │ (CounterStrikeSharp)  │
+                                                      └──────────────────────┘
 ```
 
 ## 🏃 快速开始
@@ -108,33 +108,82 @@
 
    **重要：** 生产环境请务必修改默认 token！
 
+### 📡 开启 RCON（可选）
+
+RCON 可以让插件获取命令的文本输出（如 `status`、`list`），配合插件 `ExecCommandMode: "rcon-relay"` 使用。
+
+#### 法一：写入 server.cfg 配置文件（推荐）
+
+创建或编辑 `csgo/cfg/server.cfg`：
+```
+rcon_password "你的超复杂密码"
+log on
+sv_logecho 1
+```
+插件的 `RconPassword` 需与此密码一致，编辑后重启服务器。
+
+#### 法二：写入启动脚本
+
+在服务器启动命令（`cs2ds.sh`）的参数末尾追加：
+```bash
++rcon_password "你的超复杂密码" \
++sv_logecho 1
+```
+
+> ⚠️ RCON 走的是 **TCP** 协议。请确认防火墙对游戏端口（默认 `27015`）放行了 TCP（不只有 UDP）。
+
 ## ⚙️ 配置说明
 
 首次启动后，`config.json` 自动生成在 `csgo/addons/counterstrikesharp/plugins/CounterStrikeSharpListenerWsServer/config.json`：
 
 ```json
 {
-  "host": "0.0.0.0",
-  "port": 60618,
-  "wsToken": "test12345",
+  "_comment_logLevel": "📋 日志等级：silent | fatal | error | warn | info | debug | trace",
+  "logLevel": "info",
+  "Host": "0.0.0.0",
+  "Port": 60618,
+  "WsToken": "test12345",
   "enablePlayerJoinBroadcast": true,
   "enablePlayerLeaveBroadcast": true,
   "enablePlayerChatBroadcast": true,
   "enableReceiveGroupMessage": true,
-  "groupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}"
+  "GroupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}",
+  "BotSuffix": " (bot)",
+  "PlayerSuffix": " (player)",
+  "EnableRemoteExecCommand": false,
+  "RemoteExecCommandWhitelist": [],
+  "RemoteExecCommandTimeoutSec": 10,
+  "RemoteCommandReturnEmptyResult": true,
+  "ExecCommandMode": "disabled",
+  "RconHost": "127.0.0.1",
+  "RconPort": 27015,
+  "RconPassword": "",
+  "RconTimeoutMs": 5000
 }
 ```
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `host` | string | `0.0.0.0` | WebSocket 服务器监听地址 |
-| `port` | int | `60618` | WebSocket 服务器监听端口 |
-| `wsToken` | string | `test12345` | 客户端连接令牌（空字符串 = 不验证） |
+| `logLevel` | string | `info` | 日志等级：`silent` / `fatal` / `error` / `warn` / `info` / `debug` / `trace` |
+| `Host` | string | `0.0.0.0` | WebSocket 服务器监听地址 |
+| `Port` | int | `60618` | WebSocket 服务器监听端口 |
+| `WsToken` | string | `test12345` | 客户端连接令牌（空字符串 = 不验证） |
 | `enablePlayerJoinBroadcast` | bool | `true` | 广播玩家进入事件 |
 | `enablePlayerLeaveBroadcast` | bool | `true` | 广播玩家离开事件 |
 | `enablePlayerChatBroadcast` | bool | `true` | 转发玩家聊天到群聊 |
 | `enableReceiveGroupMessage` | bool | `true` | 接收群消息转发到游戏内 |
-| `groupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | 游戏内群消息显示模板。可用占位符：`{group_name}` `{group_id}` `{nickname}` `{message}` |
+| `GroupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | 群消息在游戏内的显示模板 |
+| `BotSuffix` | string | ` (bot)` | Bot 名字后缀（空字符串不标记） |
+| `PlayerSuffix` | string | ` (player)` | 玩家名字后缀（空字符串不标记） |
+| `EnableRemoteExecCommand` | bool | `false` | 启用远程命令执行 |
+| `RemoteExecCommandWhitelist` | string[] | `[]` | 命令前缀白名单（空列表不限制） |
+| `RemoteExecCommandTimeoutSec` | int | `10` | 命令执行超时（秒） |
+| `RemoteCommandReturnEmptyResult` | bool | `true` | `true`=返空字符串，`false`=不返回 result 字段 |
+| `ExecCommandMode` | string | `disabled` | `disabled` / `csharp-native` / `rcon-relay` |
+| `RconHost` | string | `127.0.0.1` | RCON 服务器地址 |
+| `RconPort` | int | `27015` | RCON 端口（即游戏端口） |
+| `RconPassword` | string | `""` | RCON 密码（与 server.cfg 一致） |
+| `RconTimeoutMs` | int | `5000` | RCON 操作超时（毫秒） |
 
 ## 🔌 WebSocket 协议
 
