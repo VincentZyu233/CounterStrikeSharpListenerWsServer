@@ -29,16 +29,21 @@ public class RconClient : IDisposable {
         return false;
     }
 
-    // EXEC command (type=2): send command, read multi-packet RESPONSE (type=0)
+    // EXEC command (type=2): send command + empty terminator, read multi-packet RESPONSE (type=0)
+    // Source RCON protocol: after sending the command packet, client must send an empty
+    // packet (id=-1, type=3) so the server knows the request is complete. The server then
+    // replies with its own empty terminator packet (id=-1) to signal end-of-response.
     public async Task<string> ExecuteCommandAsync(string command, int timeoutMs = 10000) {
         var id = Random.Shared.Next();
         await SendPacketAsync(2, id, command);
+        await SendPacketAsync(3, -1, "");          // ← terminator: required by Source RCON spec
         var sb = new StringBuilder();
         using var cts = new CancellationTokenSource(timeoutMs);
         while (!cts.IsCancellationRequested) {
             var (rid, _, rbody) = await ReadPacketAsync(cts.Token);
-            if (rid != id) continue;
-            if (rbody.Length == 0) break;
+            // Server's empty terminator has id=-1; any other id is real response data
+            if (rid == -1) break;                   // ← end-of-response marker from server
+            if (rid != id) continue;                // skip packets not matching our request id
             sb.Append(rbody);
         }
         return sb.ToString().TrimEnd('\n', '\r', ' ');
