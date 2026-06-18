@@ -9,7 +9,7 @@ namespace CounterStrikeSharpListenerWsServer;
 
 public class CounterStrikeSharpListenerWsServer : BasePlugin {
     public override string ModuleName => "CounterStrikeSharp Listener WS Server";
-    public override string ModuleVersion => "0.1.1";
+    public override string ModuleVersion => "0.2.0";
 
     private WsServer? _wsServer;
     private PluginConfig _config = new();

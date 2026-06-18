@@ -30,6 +30,8 @@ mkdir -p CounterStrikeSharpListenerWsServer
 cd CounterStrikeSharpListenerWsServer
 wget "__BASE_URL__/CounterStrikeSharpListenerWsServer-v__VERSION__.dll"
 wget "__BASE_URL__/CounterStrikeSharpListenerWsServer-v__VERSION__.pdb"
+mv CounterStrikeSharpListenerWsServer-v__VERSION__.dll CounterStrikeSharpListenerWsServer.dll
+mv CounterStrikeSharpListenerWsServer-v__VERSION__.pdb CounterStrikeSharpListenerWsServer.pdb
 ```
 
 ### 📋 部署流程

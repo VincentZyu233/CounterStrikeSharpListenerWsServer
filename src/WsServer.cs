@@ -1,5 +1,7 @@
 using System.Net;
+using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
@@ -7,7 +9,7 @@ namespace CounterStrikeSharpListenerWsServer;
 
 public class WsServer {
     private readonly ILogger _logger;
-    private HttpListener? _listener;
+    private TcpListener? _listener;
     private CancellationTokenSource? _cts;
     private readonly List<WebSocket> _connections = [];
     private readonly Lock _lock = new();
@@ -20,34 +22,31 @@ public class WsServer {
     public async Task StartAsync(string host, int port, string token) {
         _token = token;
         _cts = new CancellationTokenSource();
-        _listener = new HttpListener();
-        _listener.Prefixes.Add($"http://{host}:{port}/");
         try {
+            var addr = host == "0.0.0.0" ? IPAddress.Any : IPAddress.Parse(host);
+            _listener = new TcpListener(addr, port);
             _listener.Start();
-            _logger.LogInformation($"[WsServer] Listening on http://{host}:{port}/");
+            _logger.LogInformation($"[WsServer] Listening on ws://{host}:{port}/");
         } catch (Exception ex) { _logger.LogError($"[WsServer] Failed to start: {ex.Message}"); return; }
 
         var ct = _cts.Token;
         _ = Task.Run(async () => {
             try {
                 while (!ct.IsCancellationRequested) {
-                    var contextTask = _listener.GetContextAsync();
-                    try {
-                        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                        timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-                        var completed = await Task.WhenAny(contextTask, Task.Delay(Timeout.Infinite, timeoutCts.Token));
-                        if (completed != contextTask || ct.IsCancellationRequested) break;
-                        _ = Task.Run(() => HandleHttpContextAsync(contextTask.Result, ct), ct);
-                    } catch (OperationCanceledException) { break; }
-                    catch (Exception ex) { _logger.LogError($"[WsServer] Accept error: {ex.Message}"); break; }
+                    TcpClient tcpClient;
+                    try { tcpClient = await _listener.AcceptTcpClientAsync(ct); }
+                    catch (OperationCanceledException) { break; }
+                    catch (ObjectDisposedException) { break; }
+                    _ = Task.Run(() => HandleTcpClientAsync(tcpClient, ct), ct);
                 }
-            } finally { _logger.LogInformation("[WsServer] Accept loop stopped"); }
+            } catch (Exception ex) { _logger.LogError($"[WsServer] Accept error: {ex.Message}"); }
+            finally { _logger.LogInformation("[WsServer] Accept loop stopped"); }
         }, ct);
     }
 
     public async Task StopAsync() {
         if (_cts != null) { await _cts.CancelAsync(); _cts.Dispose(); _cts = null; }
-        if (_listener != null) { _listener.Stop(); _listener.Close(); _listener = null; }
+        if (_listener != null) { _listener.Stop(); _listener = null; }
 
         List<WebSocket> clients;
         lock (_lock) { clients = [.. _connections]; _connections.Clear(); }
@@ -72,26 +71,55 @@ public class WsServer {
         }
     }
 
-    private async Task HandleHttpContextAsync(HttpListenerContext context, CancellationToken ct) {
+    private async Task HandleTcpClientAsync(TcpClient tcpClient, CancellationToken ct) {
         try {
-            if (!context.Request.IsWebSocketRequest) { context.Response.StatusCode = 400; context.Response.Close(); return; }
+            var stream = tcpClient.GetStream();
+            using var reader = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
 
-            var queryToken = context.Request.QueryString["token"];
+            var requestLine = await reader.ReadLineAsync(ct);
+            if (string.IsNullOrEmpty(requestLine)) { tcpClient.Dispose(); return; }
+
+            var parts = requestLine.Split(' ');
+            var path = parts.Length > 1 ? parts[1] : "";
+            var queryToken = "";
+            var qIdx = path.IndexOf('?');
+            if (qIdx >= 0) {
+                foreach (var p in path[(qIdx + 1)..].Split('&')) {
+                    var kv = p.Split('=', 2);
+                    if (kv.Length == 2 && kv[0] == "token")
+                        queryToken = Uri.UnescapeDataString(kv[1]);
+                }
+            }
+
             if (!string.IsNullOrEmpty(_token) && queryToken != _token) {
-                _logger.LogWarning($"[WsServer] Token verification failed from {context.Request.RemoteEndPoint}");
-                context.Response.StatusCode = 401;
-                context.Response.Close();
+                _logger.LogWarning($"[WsServer] Token verification failed from {tcpClient.Client.RemoteEndPoint}");
+                tcpClient.Dispose();
                 return;
             }
 
-            var ws = (await context.AcceptWebSocketAsync(null)).WebSocket;
-            _logger.LogInformation($"[WsServer] Client connected: {context.Request.RemoteEndPoint}");
+            string? secWebSocketKey = null;
+            string? headerLine;
+            while (!string.IsNullOrEmpty(headerLine = await reader.ReadLineAsync(ct))) {
+                if (headerLine.StartsWith("Sec-WebSocket-Key:", StringComparison.OrdinalIgnoreCase))
+                    secWebSocketKey = headerLine["Sec-WebSocket-Key:".Length..].Trim();
+            }
+
+            if (secWebSocketKey == null) { tcpClient.Dispose(); return; }
+
+            var acceptKey = ComputeAcceptKey(secWebSocketKey);
+            var response = $"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {acceptKey}\r\n\r\n";
+            var responseBytes = Encoding.UTF8.GetBytes(response);
+            await stream.WriteAsync(responseBytes, ct);
+            await stream.FlushAsync(ct);
+
+            var ws = WebSocket.CreateFromStream(stream, true, null, TimeSpan.FromSeconds(30));
+            _logger.LogInformation($"[WsServer] Client connected: {tcpClient.Client.RemoteEndPoint}");
             lock (_lock) _connections.Add(ws);
             await ReceiveLoopAsync(ws, ct);
-        } catch (Exception ex) {
-            _logger.LogError($"[WsServer] HandleHttpContext error: {ex.Message}");
-            context.Response.StatusCode = 500;
-            try { context.Response.Close(); } catch { }
+        } catch (Exception ex) when (ex is not OperationCanceledException) {
+            _logger.LogError($"[WsServer] HandleTcpClient error: {ex.Message}");
+        } finally {
+            tcpClient.Dispose();
         }
     }
 
@@ -119,5 +147,13 @@ public class WsServer {
             ws.Dispose();
             _logger.LogInformation("[WsServer] Client disconnected");
         }
+    }
+
+    private static readonly string WsMagicGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    private static string ComputeAcceptKey(string clientKey) {
+        var combined = clientKey + WsMagicGuid;
+        var hash = SHA1.HashData(Encoding.UTF8.GetBytes(combined));
+        return Convert.ToBase64String(hash);
     }
 }
