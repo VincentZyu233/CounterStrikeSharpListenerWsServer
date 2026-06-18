@@ -10,7 +10,7 @@ namespace CounterStrikeSharpListenerWsServer;
 
 public class CounterStrikeSharpListenerWsServer : BasePlugin {
     public override string ModuleName => "CounterStrikeSharp Listener WS Server";
-    public override string ModuleVersion => "0.3.0";
+    public override string ModuleVersion => "0.3.1";
 
     private WsServer? _wsServer;
     private PluginConfig _config = new();
@@ -62,8 +62,8 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
             if (!root.TryGetProperty("type", out var typeProp)) return;
             var type = typeProp.GetString();
             switch (type) {
-                case "chat_platform_to_server": HandleChatMessage(json); break;
-                case "external_command_to_server": HandleCommandRequest(ws, json); break;
+                case "chat_platform_to_server": Server.NextFrame(() => HandleChatMessage(json)); break;
+                case "external_command_to_server": Server.NextFrame(() => HandleCommandRequest(ws, json)); break;
             }
         } catch (Exception ex) { Logger.LogError($"[Plugin] Failed to handle WS message: {ex.Message}"); }
     }

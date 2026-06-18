@@ -18,8 +18,8 @@ __COMMIT_LOG__
 
 | 文件 | 说明 |
 |------|------|
-| [📦 `CounterStrikeSharpListenerWsServer-v__VERSION__.dll`](__BASE_URL__/CounterStrikeSharpListenerWsServer-v__VERSION__.dll) | 🔌 插件主程序 |
-| [📦 `CounterStrikeSharpListenerWsServer-v__VERSION__.pdb`](__BASE_URL__/CounterStrikeSharpListenerWsServer-v__VERSION__.pdb) | 🐛 调试符号文件（可选，保留方便报错定位行号） |
+| [📦 `CounterStrikeSharpListenerWsServer-__VERSION__.dll`](__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.dll) | 🔌 插件主程序 |
+| [📦 `CounterStrikeSharpListenerWsServer-__VERSION__.pdb`](__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.pdb) | 🐛 调试符号文件（可选，保留方便报错定位行号） |
 
 ### 📥 安装方法
 
@@ -28,10 +28,10 @@ __COMMIT_LOG__
 cd csgo/addons/counterstrikesharp/plugins/
 mkdir -p CounterStrikeSharpListenerWsServer
 cd CounterStrikeSharpListenerWsServer
-wget "__BASE_URL__/CounterStrikeSharpListenerWsServer-v__VERSION__.dll"
-wget "__BASE_URL__/CounterStrikeSharpListenerWsServer-v__VERSION__.pdb"
-mv CounterStrikeSharpListenerWsServer-v__VERSION__.dll CounterStrikeSharpListenerWsServer.dll
-mv CounterStrikeSharpListenerWsServer-v__VERSION__.pdb CounterStrikeSharpListenerWsServer.pdb
+wget "__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.dll"
+wget "__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.pdb"
+mv CounterStrikeSharpListenerWsServer-__VERSION__.dll CounterStrikeSharpListenerWsServer.dll
+mv CounterStrikeSharpListenerWsServer-__VERSION__.pdb CounterStrikeSharpListenerWsServer.pdb
 ```
 
 ### 📋 部署流程
