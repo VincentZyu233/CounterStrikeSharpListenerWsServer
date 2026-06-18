@@ -20,6 +20,8 @@
 
 基于 [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) 框架，使用 C# (.NET 10) 编写。**零额外 NuGet 依赖** — 仅使用 .NET BCL 内置的 `System.Net.WebSockets`。
 
+![效果预览](doc/images/preview-onebotv11-chat-platform-to-css-server.png)
+
 ## ✨ 功能
 
 - 🚪 **玩家进出广播** — 玩家进入/离开 CS2 服务器时自动通知群聊
@@ -131,6 +133,8 @@ sv_logecho 1
 ```
 
 > ⚠️ RCON 走的是 **TCP** 协议。请确认防火墙对游戏端口（默认 `27015`）放行了 TCP（不只有 UDP）。
+>
+> ℹ️ **某些 Linux 发行版（主要是 Debian/Ubuntu 系）注意：** Linux 下 CS2 RCON 可能绑定到 `127.0.1.1` 而非 `127.0.0.1`（见 `/etc/hosts` 主机名映射）。先用 `nc -zv 127.0.0.1 <端口>` 测试 TCP 连通性；若被拒换 `127.0.1.1`。如需 RCON 绑定全部接口，可在 `cs2ds.sh` 加 `-ip 0.0.0.0` — **安全起见不推荐**。
 
 ## ⚙️ 配置说明
 

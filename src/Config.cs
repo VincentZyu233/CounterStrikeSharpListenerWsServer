@@ -59,7 +59,7 @@ public class PluginConfig {
     public string _comment_execCommandMode { get; set; } = "⚙️ 远程指令执行模式：disabled(关闭) | csharp-native(引擎执行，无输出) | rcon-relay(RCON 回显，有输出)";
     public string ExecCommandMode { get; set; } = "disabled";
 
-    public string _comment_rconHost { get; set; } = "🏠 RCON 连接地址（默认本机 127.0.0.1）";
+    public string _comment_rconHost { get; set; } = "🏠 RCON 连接地址（默认 127.0.0.1）。注意：部分 Linux 发行版 CS2 RCON 会绑定到 127.0.1.1（/etc/hosts 主机名映射），请用 nc -zv <ip> <port> 测试 TCP 可达性";
     public string RconHost { get; set; } = "127.0.0.1";
 
     public string _comment_rconPort { get; set; } = "🔌 RCON 端口（即 CS2 游戏端口，默认 27015）";
@@ -77,7 +77,7 @@ public class PluginConfig {
             var cfg = new PluginConfig();
             var dir = Path.GetDirectoryName(path);
             if (dir != null) Directory.CreateDirectory(dir);
-            File.WriteAllText(path, JsonSerializer.Serialize(cfg, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+            File.WriteAllText(path, JsonSerializer.Serialize(cfg, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All) }));
             return cfg;
         }
         return JsonSerializer.Deserialize<PluginConfig>(File.ReadAllText(path)) ?? new PluginConfig();

@@ -20,6 +20,8 @@ A Counter-Strike 2 server plugin that bridges CS2 events to external chat platfo
 
 Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp), written in C# (.NET 10). **Zero extra NuGet dependencies** — uses only `System.Net.WebSockets` from the BCL.
 
+![preview](doc/images/preview-onebotv11-chat-platform-to-css-server.png)
+
 ## ✨ Features
 
 - 🚪 **Player Join/Leave Broadcast** — announces when players enter or exit the CS2 server
@@ -131,6 +133,8 @@ Add to your server startup command line (`cs2ds.sh` or similar):
 ```
 
 > ⚠️ RCON uses **TCP** on the game port. Ensure your firewall allows TCP (not only UDP) on the configured port (`27015` by default).
+>
+> ℹ️ **Debian/Ubuntu note:** On Linux, CS2 RCON may bind to `127.0.1.1` instead of `127.0.0.1` (see `/etc/hosts` hostname mapping). Test with `nc -zv 127.0.0.1 <port>` first; if refused, try `127.0.1.1`. To force RCON onto all interfaces, add `-ip 0.0.0.0` to `cs2ds.sh` — **not recommended for security**.
 
 ## ⚙️ Configuration
 
