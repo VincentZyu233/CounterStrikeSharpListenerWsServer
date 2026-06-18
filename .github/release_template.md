@@ -8,23 +8,23 @@
 
 ---
 
-### 🎯 版本亮点
+### 🎯 Highlights
 
 __COMMIT_LOG__
 
 ---
 
-### ⬇️ 下载 Release 产物
+### ⬇️ Download Release Assets
 
-| 文件 | 说明 |
-|------|------|
-| [📦 `CounterStrikeSharpListenerWsServer-__VERSION__.dll`](__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.dll) | 🔌 插件主程序 |
-| [📦 `CounterStrikeSharpListenerWsServer-__VERSION__.pdb`](__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.pdb) | 🐛 调试符号文件（可选，保留方便报错定位行号） |
+| File | Description |
+|------|------------|
+| [📦 `CounterStrikeSharpListenerWsServer-__VERSION__.dll`](__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.dll) | 🔌 Plugin main DLL |
+| [📦 `CounterStrikeSharpListenerWsServer-__VERSION__.pdb`](__BASE_URL__/CounterStrikeSharpListenerWsServer-__VERSION__.pdb) | 🐛 Debug symbols (optional, kept for error line numbers) |
 
-### 📥 安装方法
+### 📥 Installation
 
 ```bash
-# 1. 下载到插件子目录（目录名必须等于 DLL 文件名）
+# 1. Download to plugin subdirectory (dir name must match DLL filename)
 cd csgo/addons/counterstrikesharp/plugins/
 mkdir -p CounterStrikeSharpListenerWsServer
 cd CounterStrikeSharpListenerWsServer
@@ -34,25 +34,25 @@ mv CounterStrikeSharpListenerWsServer-__VERSION__.dll CounterStrikeSharpListener
 mv CounterStrikeSharpListenerWsServer-__VERSION__.pdb CounterStrikeSharpListenerWsServer.pdb
 ```
 
-### 📋 部署流程
+### 📋 Deployment Steps
 
-1. ✅ 服务器已安装 Metamod:Source + CounterStrikeSharp
-2. ✅ 下载 DLL 放入 `plugins/CounterStrikeSharpListenerWsServer/`
-3. ✅ 首次启动自动生成 `config.json`，按需修改 WebSocket 端口和 token
-4. ✅ 在 Koishi 客户端配置 `wsServerUrl` 指向 `ws://<CS2服务器IP>:60606?token=test12345`
-5. ✅ 重启服务端
+1. ✅ Server has Metamod:Source + CounterStrikeSharp installed
+2. ✅ Download DLL into `plugins/CounterStrikeSharpListenerWsServer/`
+3. ✅ `config.json` generated on first startup — edit WebSocket port & token as needed
+4. ✅ In Koishi client, set `wsServerUrl` to `ws://<CS2_Server_IP>:60606?token=test12345`
+5. ✅ Restart the server
 
-### 📋 功能说明
+### 📋 Features
 
-- 🚪 玩家进出 CS2 服务端广播
-- 💬 CS2 玩家聊天消息转发到群聊
-- 📨 群聊消息转发到 CS2 游戏内
+- 🚪 Player join/leave broadcast
+- 💬 In-game chat messages forwarded to group chat
+- 📨 Group chat messages forwarded to in-game chat
 
 ---
 
-### 📊 构建信息
+### 📊 Build Info
 
-- **构建日期**: __BUILD_DATE__
-- **提交**: __COMMIT_HASH__
-- **完整 Changelog**: __CHANGELOG_URL__
+- **Build Date**: __BUILD_DATE__
+- **Commit**: __COMMIT_HASH__
+- **Full Changelog**: __CHANGELOG_URL__
 

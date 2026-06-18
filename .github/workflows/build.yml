@@ -90,7 +90,7 @@ jobs:
           export BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
           export BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
           export COMMIT_HASH="[\`${GITHUB_SHA::7}\`](https://github.com/${REPO}/commit/${GITHUB_SHA})"
-          export CHANGELOG_URL="https://github.com/${REPO}/compare/${PREV_TAG:-v${VERSION}}...v${VERSION}"
+          export CHANGELOG_URL="https://github.com/${REPO}/compare/${PREV_TAG:-${VERSION}}...${VERSION}"
 
           python3 .github/scripts/generate_release_notes.py
 
@@ -101,7 +101,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="v${{ needs.check.outputs.version }}"
+          VERSION="${{ needs.check.outputs.version }}"
           gh release create "$VERSION" \
             --title "CounterStrikeSharpListenerWsServer ${VERSION}" \
             --notes-file release_notes.md \
