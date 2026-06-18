@@ -10,7 +10,7 @@ namespace CounterStrikeSharpListenerWsServer;
 // Main plugin: bridges CS2 game events ↔ WebSocket ↔ chat platforms
 public class CounterStrikeSharpListenerWsServer : BasePlugin {
     public override string ModuleName => "CounterStrikeSharp Listener WS Server";
-    public override string ModuleVersion => "0.4.2";
+    public override string ModuleVersion => "0.4.3";
 
     private WsServer? _wsServer;
     private RconClient? _rcon;
