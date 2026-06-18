@@ -10,7 +10,7 @@ namespace CounterStrikeSharpListenerWsServer;
 // Main plugin: bridges CS2 game events ↔ WebSocket ↔ chat platforms
 public class CounterStrikeSharpListenerWsServer : BasePlugin {
     public override string ModuleName => "CounterStrikeSharp Listener WS Server";
-    public override string ModuleVersion => "0.3.1";
+    public override string ModuleVersion => "0.4.1";
 
     private WsServer? _wsServer;
     private RconClient? _rcon;
@@ -118,13 +118,9 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
         var msg = JsonSerializer.Deserialize<GroupMessage>(json, JsonOptions);
         if (msg == null) { _log?.Warn("[Plugin] HandleChatMessage: deserialize failed"); return; }
         _log?.Debug($"[Plugin] HandleChatMessage: from {msg.Nickname} in {msg.GroupName}: {msg.Message[..Math.Min(msg.Message.Length, 60)]}");
-        var formatted = _config.GroupMessageFormat
-            .Replace("{group_name}", msg.GroupName)
-            .Replace("{group_id}", msg.GroupId)
-            .Replace("{nickname}", msg.Nickname)
-            .Replace("{message}", msg.Message);
+        var formatted = $"{ChatColors.Gold}[{msg.GroupName}] {ChatColors.Grey}({msg.GroupId}) {ChatColors.Lime}{msg.Nickname}{ChatColors.Default}: {msg.Message}";
         foreach (var player in Utilities.GetPlayers())
-            if (player.IsValid) player.PrintToChat($" {ChatColors.Default}{formatted}");
+            if (player.IsValid) player.PrintToChat($" {formatted}");
     }
 
     // Handle remote command: validate whitelist → try built-in → dispatch by mode

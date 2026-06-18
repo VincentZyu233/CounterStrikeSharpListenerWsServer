@@ -66,7 +66,7 @@ public class PluginConfig {
     public int RconPort { get; set; } = 27015;
 
     public string _comment_rconPassword { get; set; } = "🔑 RCON 密码（需与 server.cfg 的 rcon_password 一致）";
-    public string RconPassword { get; set; } = "";
+    public string RconPassword { get; set; } = "test67890";
 
     public string _comment_rconTimeoutMs { get; set; } = "⏱️ RCON 连接/认证/执行超时（毫秒）";
     public int RconTimeoutMs { get; set; } = 5000;
