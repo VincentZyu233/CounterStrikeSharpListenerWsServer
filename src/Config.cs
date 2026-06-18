@@ -73,7 +73,9 @@ public class PluginConfig {
             var cfg = new PluginConfig();
             var dir = Path.GetDirectoryName(path);
             if (dir != null) Directory.CreateDirectory(dir);
-            File.WriteAllText(path, JsonSerializer.Serialize(cfg, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(new System.Text.Encodings.Web.TextEncoderSettings(System.Text.Unicode.UnicodeRanges.All, System.Text.Unicode.UnicodeRange.Create(0x10000, 0x10000))) }));
+            var encoderSettings = new System.Text.Encodings.Web.TextEncoderSettings();
+            encoderSettings.AllowRanges(System.Text.Unicode.UnicodeRanges.All, System.Text.Unicode.UnicodeRange.Create(0x10000, 0x10000));
+            File.WriteAllText(path, JsonSerializer.Serialize(cfg, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(encoderSettings) }));
             return cfg;
         }
         return JsonSerializer.Deserialize<PluginConfig>(File.ReadAllText(path)) ?? new PluginConfig();
