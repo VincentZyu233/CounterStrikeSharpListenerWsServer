@@ -1,0 +1,110 @@
+name: Build Plugin
+
+on: [push]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          VERSION="v$(grep -oP '<Version>\K[^<]+' CounterStrikeSharpListenerWsServer.csproj)-${{ github.run_number }}"
+
+          if echo "$COMMIT_MSG" | grep -q "build release"; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          elif echo "$COMMIT_MSG" | grep -q "build action"; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  build:
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore
+      - run: dotnet build -c Release --no-restore
+      - run: |
+          VERSION="${{ needs.check.outputs.version }}"
+          mkdir -p output
+          cp bin/Release/net10.0/CounterStrikeSharpListenerWsServer.dll "output/CounterStrikeSharpListenerWsServer-$VERSION.dll"
+          cp bin/Release/net10.0/CounterStrikeSharpListenerWsServer.pdb "output/CounterStrikeSharpListenerWsServer-$VERSION.pdb"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CounterStrikeSharpListenerWsServer-${{ needs.check.outputs.version }}
+          path: output/
+
+  release:
+    needs: [check, build]
+    if: needs.check.outputs.should_release == 'true'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: CounterStrikeSharpListenerWsServer-${{ needs.check.outputs.version }}
+          path: output
+
+      - name: Delete existing release & tag (force fresh)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="v${{ needs.check.outputs.version }}"
+          echo "🗑️ Cleaning up existing release/tag: $VERSION"
+          gh release delete "$VERSION" --yes --cleanup-tag 2>/dev/null || echo "No existing release to delete"
+          sleep 3
+
+      - name: Generate release notes from template
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^v${VERSION}$" | head -1)
+
+          if [ -n "$PREV_TAG" ]; then
+            COMMIT_LOG=$(git log "${PREV_TAG}..HEAD" --format="%B" --reverse | sed 's/^/> /')
+          else
+            COMMIT_LOG=$(git log --format="%B" --reverse | sed 's/^/> /')
+          fi
+
+          export REPO VERSION COMMIT_LOG
+          export BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
+          export BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
+          export COMMIT_HASH="[\`${GITHUB_SHA::7}\`](https://github.com/${REPO}/commit/${GITHUB_SHA})"
+          export CHANGELOG_URL="https://github.com/${REPO}/compare/${PREV_TAG:-v${VERSION}}...v${VERSION}"
+
+          python3 .github/scripts/generate_release_notes.py
+
+          echo "📝 Generated release notes:"
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="v${{ needs.check.outputs.version }}"
+          gh release create "$VERSION" \
+            --title "CounterStrikeSharpListenerWsServer ${VERSION}" \
+            --notes-file release_notes.md \
+            --latest \
+            output/*
+
