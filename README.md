@@ -6,7 +6,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/CounterStrikeSharpListenerWsServer)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/CounterStrikeSharpListenerWsServer)
 
-[![CS2](https://img.shields.io/badge/for-CounterStrikeSharp-2B3980?style=for-the-badge&logo=csharp&logoColor=white&labelColor=FCAC19)](https://github.com/roflmuffin/CounterStrikeSharp)
+[![CS2](https://img.shields.io/badge/for-CounterStrikeSharp-2B3980?style=for-the-badge&logo=cplusplus&logoColor=white&labelColor=FCAC19)](https://github.com/roflmuffin/CounterStrikeSharp)
 [![NET](https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 
 [![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=for-the-badge&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
@@ -20,7 +20,10 @@ A Counter-Strike 2 server plugin that bridges CS2 events to external chat platfo
 
 Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp), written in C# (.NET 10). **Zero extra NuGet dependencies** — uses only `System.Net.WebSockets` from the BCL.
 
-![preview](doc/images/preview-onebotv11-chat-platform-to-css-server.png)
+![architecture-overview](doc/images/preview-bridge.png)
+![css-server-to-chat-platform](doc/images/pewview-css-server-to-onebotv11-chat-platform.png)
+![chat-platform-to-css-server](doc/images/preview-onebotv11-chat-platform-to-css-server.png)
+![exec-rcon-command](doc/images/preview-exec-rcon-command-at-chat-platform.png)
 
 ## ✨ Features
 
@@ -114,7 +117,7 @@ Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp),
 
 RCON allows the plugin to receive text output from commands like `status` or `list` (via `ExecCommandMode: "rcon-relay"`).
 
-#### 法一：写入 server.cfg 配置文件（推荐）
+#### Method 1: Write to server.cfg (Recommended)
 
 Create or edit `csgo/cfg/server.cfg`:
 ```
@@ -124,7 +127,7 @@ sv_logecho 1
 ```
 The plugin uses the same password in its `RconPassword` config. Restart after editing.
 
-#### 法二：写入启动脚本
+#### Method 2: Write to startup script
 
 Add to your server startup command line (`cs2ds.sh` or similar):
 ```bash
@@ -134,7 +137,7 @@ Add to your server startup command line (`cs2ds.sh` or similar):
 
 > ⚠️ RCON uses **TCP** on the game port. Ensure your firewall allows TCP (not only UDP) on the configured port (`27015` by default).
 >
-> ℹ️ **Debian/Ubuntu note:** On Linux, CS2 RCON may bind to `127.0.1.1` instead of `127.0.0.1` (see `/etc/hosts` hostname mapping). Test with `nc -zv 127.0.0.1 <port>` first; if refused, try `127.0.1.1`. To force RCON onto all interfaces, add `-ip 0.0.0.0` to `cs2ds.sh` — **not recommended for security**.
+> ℹ️ **Some Linux Distros(mainly in Debian/Ubuntu based) note:** On Linux, CS2 RCON may bind to `127.0.1.1` instead of `127.0.0.1` (see `/etc/hosts` hostname mapping). Test with `nc -zv 127.0.0.1 <port>` first; if refused, try `127.0.1.1`. To force RCON onto all interfaces, add `-ip 0.0.0.0` to `cs2ds.sh` — **not recommended for security**.
 
 ## ⚙️ Configuration
 

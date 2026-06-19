@@ -6,7 +6,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/CounterStrikeSharpListenerWsServer)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/CounterStrikeSharpListenerWsServer)
 
-[![CS2](https://img.shields.io/badge/for-CounterStrikeSharp-2B3980?style=for-the-badge&logo=csharp&logoColor=white&labelColor=FCAC19)](https://github.com/roflmuffin/CounterStrikeSharp)
+[![CS2](https://img.shields.io/badge/for-CounterStrikeSharp-2B3980?style=for-the-badge&logo=cplusplus&logoColor=white&labelColor=FCAC19)](https://github.com/roflmuffin/CounterStrikeSharp)
 [![NET](https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 
 [![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=for-the-badge&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
@@ -20,7 +20,10 @@
 
 基于 [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp) 框架，使用 C# (.NET 10) 编写。**零额外 NuGet 依赖** — 仅使用 .NET BCL 内置的 `System.Net.WebSockets`。
 
-![效果预览](doc/images/preview-onebotv11-chat-platform-to-css-server.png)
+![总体架构](doc/images/preview-bridge.png)
+![服务端到聊天平台](doc/images/pewview-css-server-to-onebotv11-chat-platform.png)
+![聊天平台到服务端](doc/images/preview-onebotv11-chat-platform-to-css-server.png)
+![执行RCON指令](doc/images/preview-exec-rcon-command-at-chat-platform.png)
 
 ## ✨ 功能
 

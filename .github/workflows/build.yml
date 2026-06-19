@@ -74,30 +74,57 @@ jobs:
           git tag -d "$VERSION" 2>/dev/null || true
           sleep 3
 
-      - name: Generate release notes from template
+      - name: Generate release notes
         env:
           VERSION: ${{ needs.check.outputs.version }}
           REPO: ${{ github.repository }}
         run: |
+          BASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"
+
+          # 1. Fill static template (badges, download table, install guide)
+          sed \
+            -e "s|__REPO__|${REPO}|g" \
+            -e "s|__VERSION__|${VERSION}|g" \
+            -e "s|__BASE_URL__|${BASE_URL}|g" \
+            .github/release_template.md > release_notes.md
+
+          # 2. Find previous tag
           PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${VERSION}$" | head -1)
 
-          if [ -n "$PREV_TAG" ]; then
-            COMMIT_LOG=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- \`%h\` %s (%ad) @%an" --date=short --reverse)
-          else
-            COMMIT_LOG=$(git log --pretty=format:"- \`%h\` %s (%ad) @%an" --date=short --reverse)
-          fi
+          # 3. Append commit log + build info
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "### 🎯 Commit Log"
+            echo ""
 
-          export REPO VERSION COMMIT_LOG
-          export BASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"
-          export BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
-          export COMMIT_HASH="[\`${GITHUB_SHA::7}\`](https://github.com/${REPO}/commit/${GITHUB_SHA})"
-          if [ -n "$PREV_TAG" ]; then
-            export CHANGELOG_URL="https://github.com/${REPO}/compare/${PREV_TAG}...${VERSION}"
-          else
-            export CHANGELOG_URL="https://github.com/${REPO}/commits/${VERSION}"
-          fi
+            if [ -n "$PREV_TAG" ]; then
+              echo "Changes since **${PREV_TAG}**:"
+              echo ""
+              git log "${PREV_TAG}..HEAD" --pretty=format:"- \`%h\` %s (%ad) @%an" --date=short --reverse
+            else
+              echo "All commits:"
+              echo ""
+              git log --pretty=format:"- \`%h\` %s (%ad) @%an" --date=short --reverse
+            fi
 
-          python3 .github/scripts/generate_release_notes.py
+            echo ""
+            echo ""
+            echo "---"
+            echo ""
+            echo "### 📊 Build Info"
+            echo ""
+            echo "- **Build Date**: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo "- **Commit**: [\`${GITHUB_SHA::7}\`](https://github.com/${REPO}/commit/${GITHUB_SHA})"
+            echo ""
+
+            if [ -n "$PREV_TAG" ]; then
+              echo "**Full Changelog**: https://github.com/${REPO}/compare/${PREV_TAG}...${VERSION}"
+            else
+              echo "**Full Changelog**: https://github.com/${REPO}/commits/${VERSION}"
+            fi
+          } >> release_notes.md
 
           echo "📝 Generated release notes:"
           cat release_notes.md
