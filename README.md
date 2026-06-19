@@ -6,7 +6,9 @@
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/VincentZyuApps/CounterStrikeSharpListenerWsServer)
 [![Gitee](https://img.shields.io/badge/Gitee-C71D23?style=for-the-badge&logo=gitee&logoColor=white)](https://gitee.com/vincent-zyu/CounterStrikeSharpListenerWsServer)
 
-[![CS2](https://img.shields.io/badge/for-CounterStrikeSharp-2B3980?style=for-the-badge&logo=cplusplus&logoColor=white&labelColor=FCAC19)](https://github.com/roflmuffin/CounterStrikeSharp)
+[![CS2](https://img.shields.io/badge/for-CounterStrikeSharp-512BD4?style=for-the-badge&logo=cplusplus&logoColor=white&labelColor=178600)](https://github.com/roflmuffin/CounterStrikeSharp)
+[![CS2](https://img.shields.io/badge/for-Counter_Strike_2:_Global_Offensive-FFB71E?style=for-the-badge&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI%2BCiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjgiIGhlaWdodD0iMTYiIGZpbGw9IiNGRkI3MUUiLz4KICA8cmVjdCB4PSI4IiB5PSIwIiB3aWR0aD0iOCIgaGVpZ2h0PSIxNiIgZmlsbD0iIzFFNEQ4QyIvPgogIDxjaXJjbGUgY3g9IjgiIGN5PSIzLjUiIHI9IjEuOCIgZmlsbD0id2hpdGUiLz4KICA8cmVjdCB4PSI3IiB5PSI1LjUiIHdpZHRoPSIyIiBoZWlnaHQ9IjMuNSIgcng9Ii41IiBmaWxsPSJ3aGl0ZSIvPgogIDxyZWN0IHg9IjQuNSIgeT0iNi41IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuNSIgcng9Ii40IiBmaWxsPSJ3aGl0ZSIvPgogIDxyZWN0IHg9IjkiIHk9IjYuNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjUiIHJ4PSIuNCIgZmlsbD0id2hpdGUiLz4KICA8cmVjdCB4PSI2LjUiIHk9IjkiIHdpZHRoPSIxLjMiIGhlaWdodD0iMyIgcng9Ii4zIiBmaWxsPSJ3aGl0ZSIvPgogIDxyZWN0IHg9IjguMiIgeT0iOSIgd2lkdGg9IjEuMyIgaGVpZ2h0PSIzIiByeD0iLjMiIGZpbGw9IndoaXRlIi8%2BCjwvc3ZnPg%3D%3D&logoColor=white&labelColor=1E4D8C)](https://developer.valvesoftware.com/wiki/Counter-Strike_2/Dedicated_Servers)
+
 [![NET](https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 
 [![QQ群](https://img.shields.io/badge/QQ群-1085190201-12B7F5?style=for-the-badge&logo=qq&logoColor=white)](https://qm.qq.com/q/4vjto4V7Di)
@@ -36,16 +38,14 @@ Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp),
 
 ## 🏗️ Architecture
 
-```
-┌──────────────────┐       WebSocket JSON        ┌──────────────────────────────┐
-│   Koishi Bot     │ ◄══════════════════════════► │  CounterStrikeSharpListener  │
-│ (QQ/Discord/...) │   ws://host:port?token=xxx   │         WsServer             │
-└──────────────────┘                              └───────────────┬──────────────┘
-                                                                  │
-                                                      ┌───────────┴───────────┐
-                                                      │      CS2 Server       │
-                                                      │ (CounterStrikeSharp)  │
-                                                      └──────────────────────┘
+```mermaid
+flowchart LR
+    KB["Koishi Bot<br/>(QQ/Discord/...)"]
+    CSSL["CounterStrikeSharpListener<br/>WsServer"]
+    CS2["CS2 Server<br/>(CounterStrikeSharp)"]
+
+    KB <==>|"WebSocket JSON<br/>ws://host:port?token=xxx"| CSSL
+    CSSL ---|Plugin API| CS2
 ```
 
 ## 🏃 Quick Start
@@ -114,6 +114,8 @@ Built on [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp),
    **Important:** Change the default token for production use!
 
 ### 📡 Enable RCON (Optional)
+
+> 🤔 Don't know what RCON is? 👉 See [Source RCON Protocol](https://developer.valvesoftware.com/wiki/Source_RCON_Protocol).
 
 RCON allows the plugin to receive text output from commands like `status` or `list` (via `ExecCommandMode: "rcon-relay"`).
 
