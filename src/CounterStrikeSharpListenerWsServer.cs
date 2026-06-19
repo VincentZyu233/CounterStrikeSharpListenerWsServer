@@ -10,7 +10,7 @@ namespace CounterStrikeSharpListenerWsServer;
 // Main plugin: bridges CS2 game events ↔ WebSocket ↔ chat platforms
 public class CounterStrikeSharpListenerWsServer : BasePlugin {
     public override string ModuleName => "CounterStrikeSharp Listener WS Server";
-    public override string ModuleVersion => "0.4.5";
+    public override string ModuleVersion => "0.4.6";
 
     private WsServer? _wsServer;
     private PluginConfig _config = new();
@@ -43,6 +43,8 @@ public class CounterStrikeSharpListenerWsServer : BasePlugin {
     // Build player join/leave JSON, apply Bot/Player suffix, broadcast
     private HookResult BroadcastPlayerEvent(string playerName, string type, bool enabled, bool isBot) {
         if (!enabled || string.IsNullOrEmpty(playerName)) return HookResult.Continue;
+        if (_config.PlayerBroadcastScope == "player" && isBot) return HookResult.Continue;
+        if (_config.PlayerBroadcastScope == "bot" && !isBot) return HookResult.Continue;
         var name = playerName + (isBot ? _config.BotSuffix : _config.PlayerSuffix);
         _log?.Debug($"[Plugin] Broadcast {type}: {name}");
         var json = JsonSerializer.Serialize(new PlayerEventMessage(type, name), JsonOptions);

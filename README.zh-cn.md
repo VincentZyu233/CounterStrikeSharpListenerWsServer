@@ -154,6 +154,7 @@ sv_logecho 1
   "GroupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}",
   "BotSuffix": " (bot)",
   "PlayerSuffix": " (player)",
+  "PlayerBroadcastScope": "player",
   "ExecCommandMode": "disabled",
   "RconHost": "127.0.0.1",
   "RconPort": 27015,
@@ -175,6 +176,7 @@ sv_logecho 1
 | `GroupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | 群消息在游戏内的显示模板 |
 | `BotSuffix` | string | ` (bot)` | Bot 名字后缀（空字符串不标记） |
 | `PlayerSuffix` | string | ` (player)` | 玩家名字后缀（空字符串不标记） |
+| `PlayerBroadcastScope` | string | `player` | 玩家进出事件广播范围：`player`（仅玩家）/ `bot`（仅Bot）/ `both`（两者） |
 | `ExecCommandMode` | string | `disabled` | `disabled`（关闭）/ `csharp-native`（引擎执行，无输出）/ `rcon-relay`（RCON 回显，有输出） |
 | `RconHost` | string | `127.0.0.1` | RCON 服务器地址 |
 | `RconPort` | int | `27015` | RCON 端口（即游戏端口） |

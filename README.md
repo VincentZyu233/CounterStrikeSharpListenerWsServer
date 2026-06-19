@@ -154,6 +154,7 @@ On first startup, `config.json` is auto-generated at `csgo/addons/counterstrikes
   "GroupMessageFormat": "[{group_name}]({group_id}) {nickname}: {message}",
   "BotSuffix": " (bot)",
   "PlayerSuffix": " (player)",
+  "PlayerBroadcastScope": "player",
   "ExecCommandMode": "disabled",
   "RconHost": "127.0.0.1",
   "RconPort": 27015,
@@ -175,6 +176,7 @@ On first startup, `config.json` is auto-generated at `csgo/addons/counterstrikes
 | `GroupMessageFormat` | string | `[{group_name}]({group_id}) {nickname}: {message}` | Template for in-game group messages |
 | `BotSuffix` | string | ` (bot)` | Bot name suffix (empty = none) |
 | `PlayerSuffix` | string | ` (player)` | Player name suffix (empty = none) |
+| `PlayerBroadcastScope` | string | `player` | Player event broadcast scope: `player` (players only) / `bot` (bots only) / `both` (all) |
 | `ExecCommandMode` | string | `disabled` | `disabled` (off) / `csharp-native` (engine, no output) / `rcon-relay` (RCON, with output) |
 | `RconHost` | string | `127.0.0.1` | RCON server address |
 | `RconPort` | int | `27015` | RCON server port (game port) |

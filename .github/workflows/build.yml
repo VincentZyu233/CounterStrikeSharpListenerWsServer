@@ -68,9 +68,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="v${{ needs.check.outputs.version }}"
+          VERSION="${{ needs.check.outputs.version }}"
           echo "🗑️ Cleaning up existing release/tag: $VERSION"
           gh release delete "$VERSION" --yes --cleanup-tag 2>/dev/null || echo "No existing release to delete"
+          git tag -d "$VERSION" 2>/dev/null || true
           sleep 3
 
       - name: Generate release notes from template
@@ -78,7 +79,7 @@ jobs:
           VERSION: ${{ needs.check.outputs.version }}
           REPO: ${{ github.repository }}
         run: |
-          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^v${VERSION}$" | head -1)
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${VERSION}$" | head -1)
 
           if [ -n "$PREV_TAG" ]; then
             COMMIT_LOG=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- \`%h\` %s (%ad) @%an" --date=short --reverse)
@@ -87,10 +88,14 @@ jobs:
           fi
 
           export REPO VERSION COMMIT_LOG
-          export BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
+          export BASE_URL="https://github.com/${REPO}/releases/download/${VERSION}"
           export BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
           export COMMIT_HASH="[\`${GITHUB_SHA::7}\`](https://github.com/${REPO}/commit/${GITHUB_SHA})"
-          export CHANGELOG_URL="https://github.com/${REPO}/compare/${PREV_TAG:-${VERSION}}...${VERSION}"
+          if [ -n "$PREV_TAG" ]; then
+            export CHANGELOG_URL="https://github.com/${REPO}/compare/${PREV_TAG}...${VERSION}"
+          else
+            export CHANGELOG_URL="https://github.com/${REPO}/commits/${VERSION}"
+          fi
 
           python3 .github/scripts/generate_release_notes.py
 

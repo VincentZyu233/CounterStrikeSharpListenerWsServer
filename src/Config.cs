@@ -42,6 +42,9 @@ public class PluginConfig {
     public string _comment_playerSuffix { get; set; } = "人类玩家名字后缀，设为空字符串则不标记";
     public string PlayerSuffix { get; set; } = " (player)";
 
+    public string _comment_playerBroadcastScope { get; set; } = "玩家进出事件广播范围：player(仅玩家) | bot(仅Bot) | both(两者都广播)";
+    public string PlayerBroadcastScope { get; set; } = "player";
+
     // ===== Remote command execution =====
     public string _comment_execCommandMode { get; set; } = "远程指令执行模式：disabled(关闭) | csharp-native(引擎执行，无输出) | rcon-relay(RCON 回显，有输出)";
     public string ExecCommandMode { get; set; } = "disabled";
